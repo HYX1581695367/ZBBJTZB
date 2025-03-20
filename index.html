@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>装备部件团支部青年π空间</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入开源图标库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+    <header class="bg-blue-600 text-white py-6 px-4 shadow-md">
+        <div class="container mx-auto flex flex-col items-center">
+            <h1 class="text-3xl font-bold mb-2">装备部件团支部青年π空间</h1>
+            <p class="text-xl">技术交流 · 生活分享 · 思想碰撞</p>
+        </div>
+    </header>
+
+    <main class="container mx-auto flex-grow p-4">
+        <!-- 板块选择 -->
+        <div class="flex justify-center mb-6">
+            <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                <button id="techBtn" class="px-6 py-3 bg-blue-500 text-white font-medium" onclick="switchTab('tech')">
+                    <i class="fas fa-laptop-code mr-2"></i>技术问题
+                </button>
+                <button id="dailyBtn" class="px-6 py-3 bg-gray-200 text-gray-700 font-medium" onclick="switchTab('daily')">
+                    <i class="fas fa-coffee mr-2"></i>日常问题
+                </button>
+            </div>
+        </div>
+
+        <div class="flex flex-col md:flex-row gap-6">
+            <!-- 左侧留言发布 -->
+            <div class="md:w-1/3 bg-white p-5 rounded-lg shadow-md">
+                <h2 class="text-xl font-bold mb-4 text-gray-800 border-b pb-2">发布新留言</h2>
+                <form id="messageForm" class="space-y-4">
+                    <div>
+                        <label class="block text-gray-700 mb-1">您的姓名</label>
+                        <input type="text" id="name" class="w-full px-3 py-2 border rounded-lg" placeholder="请输入您的姓名" required>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 mb-1">工号</label>
+                        <input type="text" id="workId" class="w-full px-3 py-2 border rounded-lg" placeholder="请输入您的工号">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 mb-1">留言内容</label>
+                        <textarea id="content" class="w-full px-3 py-2 border rounded-lg" rows="5" placeholder="请输入您的留言内容..." required></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 mb-1">上传图片 (可选)</label>
+                        <input type="file" id="image" accept="image/*" class="w-full px-3 py-2 border rounded-lg">
+                    </div>
+                    <button type="button" onclick="submitMessage()" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg transition">
+                        <i class="fas fa-paper-plane mr-2"></i>发布留言
+                    </button>
+                </form>
+            </div>
+
+            <!-- 右侧留言展示 -->
+            <div class="md:w-2/3 bg-white p-5 rounded-lg shadow-md">
+                <h2 class="text-xl font-bold mb-4 text-gray-800 border-b pb-2">
+                    <span id="currentTab">技术问题</span> - 留言列表
+                </h2>
+                <div id="messageList" class="space-y-6">
+                    <!-- 留言将动态插入到这里 -->
+                    <div class="text-center text-gray-500 py-10">
+                        暂无留言，快来发表第一条留言吧！
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 回复框模态窗口 -->
+    <div id="replyModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-lg p-6 w-full max-w-lg">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold">回复留言</h3>
+                <button onclick="closeReplyModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <form id="replyForm" class="space-y-4">
+                <input type="hidden" id="replyToId">
+                <div>
+                    <label class="block text-gray-700 mb-1">您的姓名</label>
+                    <input type="text" id="replyName" class="w-full px-3 py-2 border rounded-lg" placeholder="请输入您的姓名" required>
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-1">工号</label>
+                    <input type="text" id="replyWorkId" class="w-full px-3 py-2 border rounded-lg" placeholder="请输入您的工号">
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-1">回复内容</label>
+                    <textarea id="replyContent" class="w-full px-3 py-2 border rounded-lg" rows="4" placeholder="请输入您的回复内容..." required></textarea>
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-1">上传图片 (可选)</label>
+                    <input type="file" id="replyImage" accept="image/*" class="w-full px-3 py-2 border rounded-lg">
+                </div>
+                <div class="flex space-x-3">
+                    <button type="button" onclick="submitReply()" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg transition">
+                        <i class="fas fa-reply mr-2"></i>提交回复
+                    </button>
+                    <button type="button" onclick="closeReplyModal()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-lg transition">
+                        取消
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer class="bg-gray-800 text-white py-4 text-center">
+        <p>装备部件团支部青年π空间 © 2025 | 技术支持: 信息小组</p>
+    </footer>
+
+    <script>
+        // 当前选中的板块
+        let currentSection = "tech";
+        // 当前回复的留言ID
+        let currentReplyToId = null;
+
+        // 从localStorage获取保存的留言数据，如果没有则初始化空数组
+        const messagesData = JSON.parse(localStorage.getItem('piMessages')) || {
+            tech: [],  // 技术问题板块留言
+            daily: []  // 日常问题板块留言
+        };
+
+        // 从localStorage获取用户信息
+        const userInfo = JSON.parse(localStorage.getItem('userInfo')) || {};
+        
+        // 页面加载时自动填充上次输入的用户信息
+        window.onload = function() {
+            if (userInfo.name) {
+                document.getElementById('name').value = userInfo.name;
+                document.getElementById('replyName').value = userInfo.name;
+            }
+            if (userInfo.workId) {
+                document.getElementById('workId').value = userInfo.workId;
+                document.getElementById('replyWorkId').value = userInfo.workId;
+            }
+            
+            // 初始化显示留言
+            renderMessages();
+
+            // 确保旧数据格式升级到支持回复的格式
+            upgradeDataFormat();
+        };
+
+        // 升级数据格式，确保每个留言都有replies字段
+        function upgradeDataFormat() {
+            let updated = false;
+            
+            ['tech', 'daily'].forEach(section => {
+                messagesData[section].forEach(msg => {
+                    if (!msg.hasOwnProperty('replies')) {
+                        msg.replies = [];
+                        updated = true;
+                    }
+                });
+            });
+            
+            if (updated) {
+                localStorage.setItem('piMessages', JSON.stringify(messagesData));
+            }
+        }
+
+        // 切换板块
+        function switchTab(section) {
+            currentSection = section;
+            
+            // 更新UI样式
+            if (section === 'tech') {
+                document.getElementById('techBtn').className = 'px-6 py-3 bg-blue-500 text-white font-medium';
+                document.getElementById('dailyBtn').className = 'px-6 py-3 bg-gray-200 text-gray-700 font-medium';
+                document.getElementById('currentTab').textContent = '技术问题';
+            } else {
+                document.getElementById('techBtn').className = 'px-6 py-3 bg-gray-200 text-gray-700 font-medium';
+                document.getElementById('dailyBtn').className = 'px-6 py-3 bg-blue-500 text-white font-medium';
+                document.getElementById('currentTab').textContent = '日常问题';
+            }
+            
+            // 重新渲染对应板块的留言
+            renderMessages();
+        }
+
+        // 提交留言
+        function submitMessage() {
+            const nameInput = document.getElementById('name');
+            const workIdInput = document.getElementById('workId');
+            const contentInput = document.getElementById('content');
+            const imageInput = document.getElementById('image');
+            
+            const name = nameInput.value.trim();
+            const workId = workIdInput.value.trim();
+            const content = contentInput.value.trim();
+            
+            // 验证必填字段
+            if (!name || !content) {
+                alert('请填写姓名和留言内容！');
+                return;
+            }
+            
+            // 保存用户信息到localStorage
+            userInfo.name = name;
+            userInfo.workId = workId;
+            localStorage.setItem('userInfo', JSON.stringify(userInfo));
+            
+            // 处理图片上传
+            if (imageInput.files && imageInput.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    // 图片处理完成后保存留言
+                    saveMessage(name, workId, content, e.target.result);
+                };
+                
+                reader.readAsDataURL(imageInput.files[0]);
+            } else {
+                // 没有图片则直接保存留言
+                saveMessage(name, workId, content, '');
+            }
+            
+            // 清空内容输入框和图片选择框
+            contentInput.value = '';
+            imageInput.value = '';
+        }
+        
+        // 保存留言到localStorage
+        function saveMessage(name, workId, content, imageData) {
+            const message = {
+                id: Date.now(),  // 使用时间戳作为唯一ID
+                name,
+                workId,
+                content,
+                image: imageData,
+                time: new Date().toLocaleString(),
+                replies: []  // 初始化空的回复数组
+            };
+            
+            // 添加到当前板块的留言数组
+            messagesData[currentSection].push(message);
+            
+            // 保存到localStorage
+            localStorage.setItem('piMessages', JSON.stringify(messagesData));
+            
+            // 刷新留言列表显示
+            renderMessages();
+            
+            alert('留言发布成功！');
+        }
+
+        // 打开回复模态框
+        function openReplyModal(messageId) {
+            currentReplyToId = messageId;
+            document.getElementById('replyToId').value = messageId;
+            document.getElementById('replyModal').classList.remove('hidden');
+        }
+
+        // 关闭回复模态框
+        function closeReplyModal() {
+            document.getElementById('replyModal').classList.add('hidden');
+            document.getElementById('replyContent').value = '';
+            document.getElementById('replyImage').value = '';
+        }
+
+        // 提交回复
+        function submitReply() {
+            const nameInput = document.getElementById('replyName');
+            const workIdInput = document.getElementById('replyWorkId');
+            const contentInput = document.getElementById('replyContent');
+            const imageInput = document.getElementById('replyImage');
+            const messageId = document.getElementById('replyToId').value;
+            
+            const name = nameInput.value.trim();
+            const workId = workIdInput.value.trim();
+            const content = contentInput.value.trim();
+            
+            // 验证必填字段
+            if (!name || !content) {
+                alert('请填写姓名和回复内容！');
+                return;
+            }
+            
+            // 保存用户信息到localStorage
+            userInfo.name = name;
+            userInfo.workId = workId;
+            localStorage.setItem('userInfo', JSON.stringify(userInfo));
+            
+            // 处理图片上传
+            if (imageInput.files && imageInput.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    // 图片处理完成后保存回复
+                    saveReply(messageId, name, workId, content, e.target.result);
+                };
+                
+                reader.readAsDataURL(imageInput.files[0]);
+            } else {
+                // 没有图片则直接保存回复
+                saveReply(messageId, name, workId, content, '');
+            }
+        }
+
+        // 保存回复到localStorage
+        function saveReply(messageId, name, workId, content, imageData) {
+            const reply = {
+                id: Date.now(),  // 使用时间戳作为唯一ID
+                name,
+                workId,
+                content,
+                image: imageData,
+                time: new Date().toLocaleString()
+            };
+            
+            // 查找对应的留言并添加回复
+            const messages = messagesData[currentSection];
+            const messageIndex = messages.findIndex(msg => msg.id.toString() === messageId.toString());
+            
+            if (messageIndex !== -1) {
+                if (!messages[messageIndex].replies) {
+                    messages[messageIndex].replies = [];
+                }
+                messages[messageIndex].replies.push(reply);
+                
+                // 保存到localStorage
+                localStorage.setItem('piMessages', JSON.stringify(messagesData));
+                
+                // 刷新留言列表显示
+                renderMessages();
+                
+                // 关闭回复框
+                closeReplyModal();
+                
+                alert('回复发布成功！');
+            } else {
+                alert('未找到原始留言，回复失败！');
+            }
+        }
+        
+        // 渲染留言列表
+        function renderMessages() {
+            const messageListElement = document.getElementById('messageList');
+            const messages = messagesData[currentSection];
+            
+            // 清空当前显示
+            messageListElement.innerHTML = '';
+            
+            // 如果没有留言，显示提示信息
+            if (messages.length === 0) {
+                messageListElement.innerHTML = `
+                    <div class="text-center text-gray-500 py-10">
+                        暂无留言，快来发表第一条留言吧！
+                    </div>
+                `;
+                return;
+            }
+            
+            // 显示留言列表（最新的在前面）
+            messages.slice().reverse().forEach(msg => {
+                const messageElement = document.createElement('div');
+                messageElement.className = 'border rounded-lg p-4 mb-6 bg-white shadow-sm';
+                
+                let imageHtml = '';
+                if (msg.image) {
+                    imageHtml = `
+                        <div class="mt-3">
+                            <img src="${msg.image}" alt="上传图片" class="max-w-full rounded-lg max-h-96">
+                        </div>
+                    `;
+                }
+                
+                // 主留言HTML
+                let messageHtml = `
+                    <div class="flex items-center justify-between">
+                        <div class="font-bold text-blue-600">${msg.name}${msg.workId ? ' (工号: ' + msg.workId + ')' : ''}</div>
+                        <div class="text-sm text-gray-500">${msg.time}</div>
+                    </div>
+                    <div class="mt-2 text-gray-700">${msg.content.replace(/\n/g, '<br>')}</div>
+                    ${imageHtml}
+                    <div class="mt-3 flex justify-end">
+                        <button onclick="openReplyModal(${msg.id})" class="flex items-center text-blue-500 hover:text-blue-700">
+                            <i class="fas fa-reply mr-1"></i> 回复
+                        </button>
+                    </div>
+                `;
+                
+                // 如果有回复，添加回复列表
+                let repliesHtml = '';
+                if (msg.replies && msg.replies.length > 0) {
+                    repliesHtml = '<div class="mt-4 pt-3 border-t">';
+                    repliesHtml += `<h4 class="text-sm font-medium text-gray-500 mb-2">全部回复 (${msg.replies.length})</h4>`;
+                    repliesHtml += '<div class="space-y-3">';
+                    
+                    msg.replies.forEach(reply => {
+                        let replyImageHtml = '';
+                        if (reply.image) {
+                            replyImageHtml = `
+                                <div class="mt-2">
+                                    <img src="${reply.image}" alt="回复图片" class="max-w-full rounded-lg max-h-64">
+                                </div>
+                            `;
+                        }
+                        
+                        repliesHtml += `
+                            <div class="pl-4 border-l-2 border-gray-200">
+                                <div class="flex items-center justify-between">
+                                    <div class="font-medium text-blue-500">${reply.name}${reply.workId ? ' (工号: ' + reply.workId + ')' : ''}</div>
+                                    <div class="text-xs text-gray-500">${reply.time}</div>
+                                </div>
+                                <div class="mt-1 text-gray-700 text-sm">${reply.content.replace(/\n/g, '<br>')}</div>
+                                ${replyImageHtml}
+                            </div>
+                        `;
+                    });
+                    
+                    repliesHtml += '</div></div>';
+                }
+                
+                messageElement.innerHTML = messageHtml + repliesHtml;
+                messageListElement.appendChild(messageElement);
+            });
+        }
+    </script>
+<script>window.parent.postMessage({ action: "ready" }, "*"); 
+ 
+window.console = new Proxy(console, {
+  get(target, prop) {
+    if (['log', 'warn', 'error'].includes(prop)) {
+      return new Proxy(target[prop], {
+        apply(fn, thisArg, args) {
+          fn.apply(thisArg, args);
+          window.parent.postMessage({ action: 'console', 
+            type: prop, 
+            args: args.map((arg) => {
+              try {
+                return JSON.stringify(arg).replace(/^["']|["']$/g, '');
+              } catch (e) {
+                return arg;
+              }
+            }) 
+          }, '*');
+        }
+      });
+    }
+    return target[prop];
+  }
+});
+</script></body>
+</html>
